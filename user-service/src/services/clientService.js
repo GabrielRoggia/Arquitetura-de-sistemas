@@ -17,7 +17,7 @@ const createClient = async (clientData) => {
   // Gera o hash da senha antes de salvar
   const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-  const client = await prisma.client.create({
+  const client = await prisma.clients.create({
     data: {
       name,
       email,
@@ -33,7 +33,7 @@ const createClient = async (clientData) => {
  * @returns {Promise<Array<object>>} A list of all non-deleted clients.
  */
 const getAllClients = async () => {
-  const clients = await prisma.client.findMany({
+  const clients = await prisma.clients.findMany({
     where: {
       is_deleted: false,
     },
@@ -55,7 +55,7 @@ const getAllClients = async () => {
  * @returns {Promise<object|null>} The client object or null if not found.
  */
 const getClientById = async (clientId) => {
-  const client = await prisma.client.findUnique({
+  const client = await prisma.clients.findUnique({
     where: {
       id: clientId,
       is_deleted: false,
