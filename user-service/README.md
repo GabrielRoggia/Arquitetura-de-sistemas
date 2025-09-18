@@ -29,7 +29,7 @@ npm install
 cp .env.example .env
 
 # Para Windows (usando o Command Prompt)
-# copy .env.example .env
+copy .env.example .env
 ```
 
 **3. Inicie o contêiner do banco de dados com Docker:**
@@ -50,8 +50,3 @@ npm start
 ```
 
 Após o último comando, o terminal deverá exibir uma mensagem de confirmação e o microserviço estará rodando e pronto para receber requisições em `http://localhost:3000`.
-
-**Para usar o script:**
-1. Salve o conteúdo acima em um arquivo chamado `init.sh`.
-2. Dê permissão de execução para o arquivo: `chmod +x init.sh`.
-3. Execute o script: `./init.sh`.
