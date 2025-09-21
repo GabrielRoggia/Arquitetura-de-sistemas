@@ -1,6 +1,6 @@
 // src/controllers/clientController.js
 
-const clientService = require('../services/clientService');
+const clientService = require('../models/clientService');
 
 /**
  * Controller to handle the creation of a new client.

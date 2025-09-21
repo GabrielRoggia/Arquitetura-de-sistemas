@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  postgres-users-db:
+    image: postgres:15
+    container_name: postgres_users_container
+    restart: always
+    environment:
+      POSTGRES_DB: users_db
+      POSTGRES_PASSWORD: users_db
+      POSTGRES_USER: root
+    ports:
+      - "5432:5432"   # porta exposta para o users_db
+    volumes:
+      - postgres_users_data:/var/lib/postgresql/data
+
+  postgres-products-db:
+    image: postgres:15
+    container_name: postgres_products_container
+    restart: always
+    environment:
+      POSTGRES_DB: products_db
+      POSTGRES_PASSWORD: products_db
+      POSTGRES_USER: root
+    ports:
+      - "5433:5432"   # muda a porta externa para não conflitar
+    volumes:
+      - postgres_products_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres-users-db
+      - postgres-products-db
+
+volumes:
+  postgres_users_data:
+    driver: local
+  postgres_products_data:
+    driver: local
+  pgadmin_data:
+    driver: local
