@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: users_db
       POSTGRES_USER: root
     ports:
-      - "5432:5432"   # porta exposta para o users_db
+      - "5432:5432"
     volumes:
       - postgres_users_data:/var/lib/postgresql/data
 
@@ -23,9 +23,50 @@ services:
       POSTGRES_PASSWORD: products_db
       POSTGRES_USER: root
     ports:
-      - "5433:5432"   # muda a porta externa para não conflitar
+      - "5433:5432"
     volumes:
       - postgres_products_data:/var/lib/postgresql/data
+
+  postgres-payments-db:
+    image: postgres:15
+    container_name: postgres_payments_container
+    restart: always
+    environment:
+      POSTGRES_DB: payments_db
+      POSTGRES_PASSWORD: payments_db
+      POSTGRES_USER: root
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_payments_data:/var/lib/postgresql/data
+
+  mongo-orders-db:
+    image: mongo:4.4
+    container_name: mongo_orders_container
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: orders_db
+      MONGO_INITDB_DATABASE: orders_db
+    ports:
+      - '27017:27017'
+    volumes: 
+      - mongo_orders_data:/data/db
+  
+  mongo-express:
+    image: mongo-express
+    container_name: mongo_express_container
+    restart: always
+    depends_on:
+      - mongo-orders-db
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo-orders-db 
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: orders_db
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    ports:
+      - '8081:8081'    
 
   pgadmin:
     image: dpage/pgadmin4
@@ -41,11 +82,16 @@ services:
     depends_on:
       - postgres-users-db
       - postgres-products-db
+      - postgres-payments-db
 
 volumes:
   postgres_users_data:
     driver: local
   postgres_products_data:
+    driver: local
+  postgres_payments_data:
+    driver: local
+  mongo_orders_data:
     driver: local
   pgadmin_data:
     driver: local

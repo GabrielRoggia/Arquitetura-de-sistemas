@@ -1,0 +1,35 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Definição do novo Enum para o Status do Pedido
+enum OrderStatus {
+  AGUARDANDO_PAGAMENTO
+  FALHA_NO_PAGAMENTO
+  PAGO
+  CANCELADO
+}
+
+// Model para os Pedidos (Orders)
+model orders {
+  id            String        @id @default(uuid()) @map("_id")
+  clientId      String
+  totalValue    Float
+  date          DateTime      @default(now())
+  orderProducts OrderProduct[]
+  status        OrderStatus   @default(AGUARDANDO_PAGAMENTO)
+  isDeleted     Boolean       @default(false)
+}
+
+type OrderProduct {
+  productId String
+  quantity  Int
+  unitPrice Float
+}
