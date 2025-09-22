@@ -40,19 +40,9 @@ Antes de começar, certifique-se de ter instalado:
    ```bash
    ./start_DBs.sh
    ```
-   > Este script executa o docker-compose.yml e inicializa os bancos de dados necessários.
-
-3. Execute as migrações para cada serviço (se aplicável).  
-   Por exemplo, para o **user-service**:
-   ```bash
-   cd user-service
-   npm install      # ou mvn install / pip install -r requirements.txt, dependendo da stack
-   npm run migrate  # comando de migração
-   ```
-
-   Repita para `product-service`, `order-service` e `payment-service`.
-
-4. Inicie os serviços:
+   > Este script executa o docker-compose.yml e inicializa os bancos de dados necessários e executa as migrações para cada serviço.
+   
+3. Inicie os serviços:
    ```bash
    cd user-service && npm start
    cd product-service && npm start
