@@ -1,0 +1,17 @@
+# Usa uma imagem base leve do Node.js
+FROM node:18-alpine
+
+FROM node:18-alpine
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+COPY prisma ./prisma/
+RUN npm ci --only=production
+
+COPY entrypoint.sh .
+COPY . .
+
+EXPOSE 3000
+
+ENTRYPOINT [ "./entrypoint.sh" ]
+CMD [ "node", "src/server.js" ]
