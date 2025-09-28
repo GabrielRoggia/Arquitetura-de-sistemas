@@ -3,7 +3,7 @@
 set -e
 
 echo "🚀 Subindo containers com Docker Compose..."
-docker-compose up -d
+docker compose up -d
 
 echo "⏳ Aguardando containers Postgres iniciarem..."
 # Espera até que todos os containers do Postgres estejam prontos
