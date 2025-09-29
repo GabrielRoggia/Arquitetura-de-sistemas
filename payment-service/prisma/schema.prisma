@@ -10,10 +10,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
 // Tabela de Pagamentos
-model payments {
-  id        String   @id @default(uuid())
-  method    String
-  value     Decimal
-  orderId   String   // UUID de outro microserviço
+model Payment {
+  id            String        @id @default(uuid())
+  orderId       String
+  amount        Float
+  paymentMethod String
+  status        PaymentStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+  processedAt   DateTime?
 }

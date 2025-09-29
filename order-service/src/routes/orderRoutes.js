@@ -2,13 +2,16 @@ const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/orderController');
 
+// Rota para criar um novo pedido
+router.post('/', orderController.create);
 
-router.post('/', orderController.createOrder);
+// Rota para buscar todos os pedidos (com filtro opcional por cliente)
+router.get('/', orderController.findAll);
 
-router.get('/', orderController.getAllOrders);
+// Rota para buscar um pedido por ID
+router.get('/:id', orderController.findById);
 
-router.get('/:id', orderController.getOrderById);
-
-router.patch('/:id/status', orderController.updateOrderStatus);
+// Rota para atualizar o status de um pedido
+router.patch('/:id/status', orderController.updateStatus);
 
 module.exports = router;

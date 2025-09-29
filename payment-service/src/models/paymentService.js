@@ -1,24 +1,23 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../prisma.js');
 
 const create = async (paymentData) => {
-  return prisma.payment.create({
+  return prisma.Payment.create({
     data: paymentData,
   });
 };
 
 const process = async (paymentId, newStatus) => {
-  return prisma.payment.update({
+  return prisma.Payment.update({
     where: { id: paymentId },
     data: {
       status: newStatus,
-      processedAt: new Date(),
+      processedAt: new Date()
     },
   });
 };
 
 const findByOrderId = async (orderId) => {
-  return prisma.payment.findMany({
+  return prisma.Payment.findMany({
     where: {
       orderId: orderId,
     },
