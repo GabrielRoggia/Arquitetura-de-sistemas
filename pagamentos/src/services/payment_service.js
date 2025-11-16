@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const axios = require('axios');
+const { publishPaymentSuccess } = require('../rabbitmq/producer');
 const prisma = new PrismaClient();
 
 const paymentService = {
@@ -93,11 +94,8 @@ const paymentService = {
                 const orderResponse = await axios.get(`http://pedidos-service:3003/api/orders/${payment.orderId}`);
                 const orderData = orderResponse.data || {};
 
-                await axios.post('http://notificacoes-service:3005/api/notifications/order-paid', {
-                    orderId: payment.orderId,
-                    userId: orderData.userId,
-                    totalValue: orderData.totalValue,
-                });
+                // Publicar evento no RabbitMQ ao invés de fazer requisição HTTP
+                await publishPaymentSuccess(payment.orderId, orderData.clientName || 'Cliente');
             } catch (notificationError) {
                 console.warn(`Não foi possível enviar a notificação do pedido ${payment.orderId}: ${notificationError.message}`);
             }
