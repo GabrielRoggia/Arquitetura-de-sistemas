@@ -78,6 +78,10 @@ const orderService = {
       throw error;
     }
   },
+  
+  findAll() {
+    return prisma.order.findMany();
+  },
 
   async findByUserId(userId) {
     return prisma.order.findMany({

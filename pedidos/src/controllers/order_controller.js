@@ -12,11 +12,17 @@ async function createOrder(req, res) {
 async function getOrders(req, res) {
   try {
     const { userID } = req.query;
+
+    // SE userID for informado → busca pedidos do usuário
     if (userID) {
       const orders = await orderService.findByUserId(userID);
       return res.json(orders);
     }
-    return res.status(400).json({ message: 'userID query parameter is required' });
+
+    // SE NÃO → busca todas as orders
+    const allOrders = await orderService.findAll();
+    return res.json(allOrders);
+
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
