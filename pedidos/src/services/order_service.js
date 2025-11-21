@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const axios = require('axios');
+const { sendMessage } = require('../kafka/producer');
 
 const prisma = new PrismaClient();
 
@@ -51,22 +52,21 @@ const orderService = {
       const newOrder = await prisma.order.create({ data: orderToCreate });
 
       try {
-
-        const paymentCreationPromises = paymentMethods.map(method =>
-          axios.post("http://pagamentos-service:3004/api/payments", {
+        // Publicar evento no Kafka ao invés de chamar API HTTP
+        for (const method of paymentMethods) {
+          await sendMessage('order-created', {
             orderId: newOrder.id,
             value: calculatedTotalValue,
-            typePaymentId: method.typeId
-          })
-        );
-        await Promise.all(paymentCreationPromises);
-      } catch (paymentError) {
-
-        await prisma.order.delete({
-          where: { id: newOrder.id }
-        });
-
-        throw new Error(`Houve um erro ao registrar a intenção de pagamento: ${paymentError.message}`);
+            typePaymentId: method.typeId,
+            userId: data.userId,
+          });
+        }
+      } catch (kafkaError) {
+        console.error('Erro ao enviar mensagem para o Kafka:', kafkaError);
+        
+        // Rollback: Delete the order if Kafka fails
+        await prisma.order.delete({ where: { id: newOrder.id } });
+        throw new Error('Erro ao processar pagamento (Serviço de Mensageria indisponível). Tente novamente mais tarde.');
       }
 
       return newOrder;
