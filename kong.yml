@@ -1,0 +1,181 @@
+_format_version: "3.0"
+
+services:
+  - name: cliente-service
+    url: http://cliente-service:3001
+    routes:
+      - name: cliente-users-list
+        paths: ["/users", "/api/users"]
+        strip_path: false
+        methods: ["GET"]
+        protocols: ["http"]
+        plugins:
+          - name: request-size-limiting
+            enabled: true
+            config:
+              allowed_payload_size: 204800
+          - name: rate-limiting
+            enabled: true
+            config:
+              minute: 10
+              limit_by: ip
+              policy: local
+          - name: proxy-cache
+            enabled: true
+            config:
+              strategy: memory
+              cache_ttl: 86400
+              response_code: [200]
+
+      - name: cliente-users-detail
+        paths: ["/users/(?<id>[0-9]+)$", "/api/users/(?<id>[0-9]+)$"]
+        strip_path: false
+        methods: ["GET"]
+        protocols: ["http"]
+        regex_priority: 100
+        plugins:
+          - name: request-size-limiting
+            enabled: true
+            config:
+              allowed_payload_size: 204800
+          - name: rate-limiting
+            enabled: true
+            config:
+              minute: 10
+              limit_by: ip
+              policy: local
+          - name: proxy-cache
+            enabled: true
+            config:
+              strategy: memory
+              cache_ttl: 86400
+              response_code: [200]
+
+      - name: cliente-clients-all
+        paths: ["/clients", "/api/clients"]
+        strip_path: false
+        methods: ["GET","POST","PATCH","DELETE"]
+        protocols: ["http"]
+        plugins:
+          - name: request-size-limiting
+            enabled: true
+            config:
+              allowed_payload_size: 204800
+          - name: rate-limiting
+            enabled: true
+            config:
+              minute: 10
+              limit_by: ip
+              policy: local
+
+  - name: produto-service
+    url: http://produto-service:3002
+    routes:
+      - name: produto-products-list
+        paths: ["/products", "/api/products"]
+        strip_path: false
+        methods: ["GET"]
+        protocols: ["http"]
+        plugins:
+          - name: request-size-limiting
+            enabled: true
+            config:
+              allowed_payload_size: 204800
+          - name: rate-limiting
+            enabled: true
+            config:
+              minute: 10
+              limit_by: ip
+              policy: local
+          - name: proxy-cache
+            enabled: true
+            config:
+              strategy: memory
+              cache_ttl: 14400
+              response_code: [200]
+
+      - name: produto-products-write
+        paths: ["/products", "/api/products"]
+        strip_path: false
+        methods: ["POST","PATCH","DELETE"]
+        protocols: ["http"]
+        plugins:
+          - name: request-size-limiting
+            enabled: true
+            config:
+              allowed_payload_size: 204800
+          - name: rate-limiting
+            enabled: true
+            config:
+              minute: 10
+              limit_by: ip
+              policy: local
+
+  - name: pedidos-service
+    url: http://pedidos-service:3003
+    routes:
+      - name: pedidos-orders
+        paths: ["/orders", "/api/orders"]
+        strip_path: false
+        methods: ["GET","POST","PATCH"]
+        protocols: ["http"]
+        plugins:
+          - name: request-size-limiting
+            enabled: true
+            config:
+              allowed_payload_size: 204800
+          - name: rate-limiting
+            enabled: true
+            config:
+              minute: 10
+              limit_by: ip
+              policy: local
+          - name: proxy-cache
+            enabled: true
+            config:
+              strategy: memory
+              cache_ttl: 2592000
+              response_code: [200]
+
+  - name: pagamentos-service
+    url: http://pagamentos-service:3004
+    routes:
+      - name: pagamentos-types
+        paths: ["/payments/types"]
+        strip_path: false
+        methods: ["GET"]
+        protocols: ["http"]
+        plugins:
+          - name: request-size-limiting
+            enabled: true
+            config:
+              allowed_payload_size: 204800
+          - name: rate-limiting
+            enabled: true
+            config:
+              minute: 10
+              limit_by: ip
+              policy: local
+          - name: proxy-cache
+            enabled: true
+            config:
+              strategy: memory
+              cache_ttl: 315360000
+              response_code: [200]
+
+      - name: pagamentos-all
+        paths: ["/type-payments", "/type-payments/{id}", "/api/type-payments", "/api/type-payments/{id}", "/payments", "/payments/{id}", "/api/payments", "/api/payments/{id}"]
+        strip_path: false
+        methods: ["GET","POST","PATCH"]
+        protocols: ["http"]
+        plugins:
+          - name: request-size-limiting
+            enabled: true
+            config:
+              allowed_payload_size: 204800
+          - name: rate-limiting
+            enabled: true
+            config:
+              minute: 10
+              limit_by: ip
+              policy: local

@@ -6,7 +6,9 @@ const { connectConsumer } = require("./kafka/consumer");
 const app = express();
 const PORT = process.env.PORT || 3004; 
 
-app.use(express.json());
+// Limit request body size to 200KB
+app.use(express.json({ limit: '200kb' }));
+app.use(express.urlencoded({ limit: '200kb', extended: true }));
 
 app.use("/api", router);
 

@@ -16,4 +16,7 @@ router.post('/payments', createPayment);
 router.patch('/payments/:id/process', processPayment);
 router.get('/payments/order/:orderId', getPaymentsByOrderId);
 
+// Alias to satisfy gateway path /payments/types -> /type-payments
+router.get('/payments/types', getAllTypePayments);
+
 module.exports = router;
