@@ -82,7 +82,7 @@ const paymentService = {
 
         const orderStatus = isSuccess ? 'PAGO' : 'CANCELADO';
         try {
-            await axios.patch(`http://pedidos-service:3003/api/orders/${payment.orderId}/status`, {
+            await axios.patch(`http://kong:8000/orders/${payment.orderId}/status`, {
                 status: orderStatus,
             });
         } catch (error) {
@@ -91,7 +91,7 @@ const paymentService = {
 
         if (isSuccess) {
             try {
-                const orderResponse = await axios.get(`http://pedidos-service:3003/api/orders/${payment.orderId}`);
+                const orderResponse = await axios.get(`http://kong:8000/orders/${payment.orderId}`);
                 const orderData = orderResponse.data || {};
 
                 // Publicar evento no RabbitMQ ao invés de fazer requisição HTTP

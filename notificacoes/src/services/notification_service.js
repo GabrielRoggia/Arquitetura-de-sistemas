@@ -11,7 +11,7 @@ const notificationService = {
     let user = null;
     if (userId) {
       try {
-        const response = await axios.get(`http://cliente-service:3001/api/clients/${userId}`);
+        const response = await axios.get(`http://kong:8000/clients/${userId}`);
         user = response.data;
       } catch (error) {
         console.warn(`Não foi possível obter os dados do usuário ${userId}: ${error.message}`);

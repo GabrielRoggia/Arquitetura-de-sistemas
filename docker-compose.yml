@@ -14,6 +14,8 @@ services:
       - cliente-data:/var/lib/postgresql/data
     ports:
       - '5433:5432'
+    networks:
+      - ecommerce-network
 
   # --- Serviço de Produtos ---
   produto-db:
@@ -28,6 +30,8 @@ services:
       - produto-data:/var/lib/postgresql/data
     ports:
       - '5434:5432'
+    networks:
+      - ecommerce-network
 
   pagamento-db:
     image: postgres:15-alpine
@@ -41,6 +45,8 @@ services:
       - pagamento-data:/var/lib/postgresql/data
     ports:
       - '5435:5432'
+    networks:
+      - ecommerce-network
 
   # --- Banco de dados de Pedidos (MongoDB) ---
   orders-db:
@@ -58,6 +64,8 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+    networks:
+      - ecommerce-network
 
   # --- UI para MongoDB ---
   mongo-express:
@@ -74,6 +82,8 @@ services:
       ME_CONFIG_BASICAUTH_PASSWORD: admin
     depends_on:
       - orders-db
+    networks:
+      - ecommerce-network
 
   # --- Inicialização do Replica Set ---
   orders-db-init:
@@ -92,6 +102,8 @@ services:
         mongosh --host orders-db:27017 --quiet --eval "db.adminCommand({ setDefaultRWConcern: 1, defaultWriteConcern: { w: \"majority\" } })"
       '
     restart: "no"
+    networks:
+      - ecommerce-network
 
   # --- Kafka & Zookeeper ---
   zookeeper:
@@ -103,6 +115,8 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    networks:
+      - ecommerce-network
 
   kafka:
     image: confluentinc/cp-kafka:7.4.0
@@ -119,6 +133,8 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - ecommerce-network
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -132,38 +148,38 @@ services:
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
     depends_on:
       - kafka
+    networks:
+      - ecommerce-network
 
   # --- Services ---
   cliente-service:
     container_name: cliente-service
     build: ./cliente
     restart: always
-    ports:
-      - '3001:3001'
     environment:
       DATABASE_URL: "postgresql://user:password@cliente-db:5432/clientedb"
     depends_on:
       - cliente-db
     command: sh -c "npx prisma migrate deploy && npm start"
+    networks:
+      - ecommerce-network
 
   produto-service:
     container_name: produto-service
     build: ./produto
     restart: always
-    ports:
-      - '3002:3002'
     environment:
       DATABASE_URL: "postgresql://user:password@produto-db:5432/produtodb"
     depends_on:
       - produto-db
     command: sh -c "npx prisma migrate deploy && npm start"
+    networks:
+      - ecommerce-network
 
   pagamentos-service:
     container_name: pagamentos-service
     build: ./pagamentos
     restart: on-failure
-    ports:
-      - '3004:3004'
     environment:
       DATABASE_URL: "postgresql://user:password@pagamento-db:5432/pagamentodb"
       RABBITMQ_URL: "amqp://user:password@rabbitmq:5672"
@@ -173,24 +189,24 @@ services:
       - rabbitmq
       - kafka
     command: sh -c "npx prisma migrate deploy && npx prisma db seed && npm start"
+    networks:
+      - ecommerce-network
 
   notificacoes-service:
     container_name: notificacoes-service
     build: ./notificacoes
     restart: always
-    ports:
-      - '3005:3005'
     environment:
       RABBITMQ_URL: "amqp://user:password@rabbitmq:5672"
     depends_on:
       - rabbitmq
+    networks:
+      - ecommerce-network
 
   pedidos-service:
     container_name: pedidos-service
     build: ./pedidos
     restart: on-failure
-    ports:
-      - '3003:3003'
     env_file:
       - ./.env
     environment:
@@ -199,6 +215,8 @@ services:
       - orders-db-init
       - kafka
     command: sh -c "npx prisma db push && npm start"
+    networks:
+      - ecommerce-network
 
   pgadmin:
     image: dpage/pgadmin4
@@ -216,6 +234,8 @@ services:
       - produto-db
       - cliente-db
       - pagamento-db
+    networks:
+      - ecommerce-network
 
   # --- RabbitMQ ---
   rabbitmq:
@@ -227,6 +247,68 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: password
+    networks:
+      - ecommerce-network
+
+  # --- Redis & UI ---
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - ecommerce-network
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
+    restart: always
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8082:8081"
+    depends_on:
+      - redis
+    networks:
+      - ecommerce-network
+
+  # --- API Gateway (Kong) ---
+  kong:
+    image: kong:3.4
+    container_name: kong
+    restart: always
+    volumes:
+      - ./kong/kong.yml:/usr/local/kong/declarative/kong.yml
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /usr/local/kong/declarative/kong.yml
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001, 0.0.0.0:8444 ssl
+      KONG_PLUGINS: bundled
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+      - "8001:8001"
+      - "8444:8444"
+    networks:
+      - ecommerce-network
+    depends_on:
+      - redis
+
+  konga:
+    image: pantsel/konga
+    container_name: konga
+    restart: always
+    ports:
+      - "1337:1337"
+    environment:
+      NODE_ENV: development
+    networks:
+      - ecommerce-network
 
 volumes:
   cliente-data:
@@ -234,3 +316,7 @@ volumes:
   pagamento-data:
   pgadmin_data:
   orders_mongo_data:
+
+networks:
+  ecommerce-network:
+    driver: bridge

@@ -15,7 +15,7 @@ const orderService = {
     let calculatedTotalValue = 0;
 
     const productDetailPromises = data.products.map(product =>
-      axios.get(`http://produto-service:3002/api/products/${product.productId}`)
+      axios.get(`http://kong:8000/products/${product.productId}`)
     );
     try {
       const productDetailResponses = await Promise.all(productDetailPromises);
@@ -116,7 +116,7 @@ const orderService = {
 
       try {
         const stockUpdatePromises = order.products.map(product =>
-          axios.patch(`http://produto-service:3002/api/products/${product.productId}/stock`, {
+          axios.patch(`http://kong:8000/products/${product.productId}/stock`, {
             quantity: -product.quantity,
           })
         );

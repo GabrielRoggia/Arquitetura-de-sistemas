@@ -1,0 +1,106 @@
+_format_version: "3.0"
+
+services:
+  - name: cliente-service
+    url: http://cliente-service:3001/api
+    routes:
+      - name: clients-id-cache
+        paths:
+          - ~/clients/[^/]+$
+        strip_path: false
+        plugins:
+          - name: proxy-cache
+            config:
+              strategy: redis
+              cache_ttl: 86400
+              redis:
+                host: redis
+                port: 6379
+                timeout: 2000
+                database: 0
+      - name: clients-general
+        paths:
+          - /clients
+        strip_path: false
+
+  - name: produto-service
+    url: http://produto-service:3002/api
+    routes:
+      - name: products-list-cache
+        paths:
+          - ~/products$
+        strip_path: false
+        plugins:
+          - name: proxy-cache
+            config:
+              strategy: redis
+              cache_ttl: 14400
+              redis:
+                host: redis
+                port: 6379
+                timeout: 2000
+                database: 0
+      - name: products-general
+        paths:
+          - /products
+        strip_path: false
+
+  - name: pagamentos-service
+    url: http://pagamentos-service:3004/api
+    routes:
+      - name: type-payments-cache
+        paths:
+          - /type-payments
+        strip_path: false
+        plugins:
+          - name: proxy-cache
+            config:
+              strategy: redis
+              cache_ttl: 315360000
+              redis:
+                host: redis
+                port: 6379
+                timeout: 2000
+                database: 0
+      - name: payments-general
+        paths:
+          - /payments
+        strip_path: false
+
+  - name: pedidos-service
+    url: http://pedidos-service:3003/api
+    routes:
+      - name: orders-id-cache
+        paths:
+          - ~/orders/[^/]+$
+        strip_path: false
+        plugins:
+          - name: proxy-cache
+            config:
+              strategy: redis
+              cache_ttl: 2592000
+              redis:
+                host: redis
+                port: 6379
+                timeout: 2000
+                database: 0
+      - name: orders-general
+        paths:
+          - /orders
+        strip_path: false
+
+plugins:
+  - name: rate-limiting
+    config:
+      minute: 10
+      policy: redis
+      redis:
+        host: redis
+        port: 6379
+        timeout: 2000
+        database: 0
+
+  - name: request-size-limiting
+    config:
+      allowed_payload_size: 200
+      size_unit: kilobytes
